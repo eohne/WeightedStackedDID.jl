@@ -7,7 +7,7 @@ Following this code example: [Link](https://github.com/hollina/stacked-did-weigh
 ## Function Definition
 
 ```julia
-    stacked_did_reg(data::DataFrame;yvar::Symbol, timeID::Symbol, unitID::Symbol, cohort::Symbol, kappa_pre::Int, kappa_post::Int,x_vars::Vector{Symbol}=Symbol[],fes::Vector{Symbol}=Symbol[],cluster::Union{Nothing,Symbol}=nothing,contrasts::Dict{Symbol, DummyCoding}=Dict{Symbol, DummyCoding}())
+    stacked_did_reg(data::DataFrame;yvar::Symbol, timeID::Symbol, unitID::Symbol, cohort::Symbol, kappa_pre::Int, kappa_post::Int,x_vars::Vector{Symbol}=Symbol[],fes::Vector{Symbol}=Symbol[],cluster::Union{Nothing,Symbol}=nothing,contrasts::Dict{Symbol, DummyCoding}=Dict{Symbol, DummyCoding}(),multi_thread::Bool=true,inc_sub_exp_fes=false)
 ```
 ### Arguments  
 
@@ -22,6 +22,8 @@ Following this code example: [Link](https://github.com/hollina/stacked-did-weigh
  * fes: Vector of additional fixed effects
  * cluster: The cluster variable (currently only supports one). If not supplied it is set at the level of the unitID
  * contrasts: contrasts for DummyVariables. Required if you included a Dummy Variable in x_vars
+ * multi_thread: Whether to use multithreading or not in building the stacks
+ * inc_sub_exp_fes :If yes includes sub-experiment-unit-id and sub-experiment-event-time fixed effects 
 
 ## Example
 
@@ -34,15 +36,7 @@ julia> data = CSV.File(raw"data\acs1860_unins_2008_2021.csv") |> DataFrame;
 julia> data.adopt_year[ismissing.(data.adopt_year)] .=0; # Never Treated Adoption time must be set to zero
 
 julia> wsd_res = stacked_did_reg(data,                                                                                                                  
-           yvar=:unins,                                                                                                                       
-           x_vars=Symbol[], # not needed is automatically set to empty                                                                        
-           fes = Symbol[], # not needed is automatically set to empty                                                                         
-           timeID=:year,                                                                                                                      
-           unitID=:statefip,                                                                                                                 
-           cohort=:adopt_year,                                                                                                          
-           kappa_pre=3,                                                                                                                       
-           kappa_post=2,                                                                                                                      
-           cluster=:statefip)
+           yvar=:unins,timeID=:year,                                                                                               unitID=:statefip,                                                                                           cohort=:adopt_year,                                                                                         kappa_pre=3,                                                                                                kappa_post=2,                                                                                               cluster=:statefip)
                                 FixedEffectModel
 ================================================================================
 Number of obs:                      336  Converged:                         true
