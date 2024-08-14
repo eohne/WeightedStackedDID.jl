@@ -106,10 +106,10 @@ end
     include(raw"pre_compile_data.jl")
     prec_data[!,:x1] = rand(size(prec_data,1))
     @compile_workload begin
-        res =stacked_did_reg(prec_data;yvar=:unins, timeID=:year, unitID=:statefip, cohort=:adopt_year, kappa_pre=3, kappa_post=2,cluster=:statefip);
-        res =stacked_did_reg(prec_data;yvar=:unins, timeID=:year, unitID=:statefip, cohort=:adopt_year, kappa_pre=3, kappa_post=2,cluster=:statefip,multi_thread=false);
-        res =stacked_did_reg(prec_data;yvar=:unins, timeID=:year, unitID=:statefip, cohort=:adopt_year, kappa_pre=3, kappa_post=2,cluster=:statefip,fes=[:statefip],x_vars=[:x1]);
-        agg_to_ATT(res);
+        res =stacked_did_reg(prec_data;yvar=:unins, timeID=:year, unitID=:statefip, cohort=:adopt_year, kappa_pre=3, kappa_post=2,cluster=:statefip)
+        res =stacked_did_reg(prec_data;yvar=:unins, timeID=:year, unitID=:statefip, cohort=:adopt_year, kappa_pre=3, kappa_post=2,cluster=:statefip,multi_thread=false)
+        res =stacked_did_reg(prec_data;yvar=:unins, timeID=:year, unitID=:statefip, cohort=:adopt_year, kappa_pre=3, kappa_post=2,cluster=:statefip,fes=[:statefip],x_vars=[:x1])
+        agg_to_ATT(res)
     end
 end
 
