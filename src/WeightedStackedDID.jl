@@ -1,35 +1,35 @@
-
 module WeightedStackedDID
     
-using DataFrames, FixedEffectModels
+using DataFrames, FixedEffectModels, Distributions
 
-export stacked_did_reg, compute_weights!, create_sub_exp
+export stacked_did_reg, compute_weights!, create_sub_exp, agg_to_ATT, WSDID_AGG
 
 include("compute_weights.jl");
 include("create_sub_experiment.jl");
+include("ATT.jl")
 
 """
-    stacked_did_reg(data::DataFrame;yvar::Symbol, timeID::Symbol, groupID::Symbol, adoptionTime::Symbol, kappa_pre::Int, kappa_post::Int,x_vars::Vector{Symbol}=Symbol[],fes::Vector{Symbol}=Symbol[],cluster::Union{Nothing,Symbol}=nothing,contrasts::Dict{Symbol, DummyCoding}=Dict{Symbol, DummyCoding}())
+    stacked_did_reg(data::DataFrame;yvar::Symbol, timeID::Symbol, id::Symbol, adoptionTime::Symbol, kappa_pre::Int, kappa_post::Int,x_vars::Vector{Symbol}=Symbol[],fes::Vector{Symbol}=Symbol[],cluster::Union{Nothing,Symbol}=nothing,contrasts::Dict{Symbol, DummyCoding}=Dict{Symbol, DummyCoding}())
 
 Implements the Weighted Stacked Difference-in-Differences of Wing, Freedman, and Hollingsworth (2024).
 
 """
-function stacked_did_reg(data::DataFrame;yvar::Symbol, timeID::Symbol, groupID::Symbol, adoptionTime::Symbol, kappa_pre::Int, kappa_post::Int,x_vars::Vector{Symbol}=Symbol[],fes::Vector{Symbol}=Symbol[],cluster::Union{Nothing,Symbol}=nothing,contrasts::Dict{Symbol, DummyCoding}=Dict{Symbol, DummyCoding}())
-    dataset = select(data, unique(vcat(yvar,x_vars,fes,timeID,groupID,adoptionTime)))    
+function stacked_did_reg(data::DataFrame;yvar::Symbol, timeID::Symbol, id::Symbol, adoptionTime::Symbol, kappa_pre::Int, kappa_post::Int,x_vars::Vector{Symbol}=Symbol[],fes::Vector{Symbol}=Symbol[],cluster::Union{Nothing,Symbol}=nothing,contrasts::Dict{Symbol, DummyCoding}=Dict{Symbol, DummyCoding}())
+    dataset = select(data, unique(vcat(yvar,x_vars,fes,timeID,id,adoptionTime)))    
     dropmissing!(dataset)
     
     _formula=term(yvar)~sum(vcat(term(:event_time_treat),term.(x_vars),fe.(term.(vcat(fes,:treat,:event_time)))))
     if isnothing(cluster)
-        cluster = groupID
-        @info "\nCluster variable was not provided. Clustering will happen on the $(string(groupID)) level!\n"
+        cluster = id
+        @info "\nCluster variable was not provided. Clustering will happen on the $(string(id)) level!\n"
     end
     if size(dataset,1) != size(data,1)
         @info "\n$(size(data,1) - size(dataset,1)) observations were dropped due to missingness!\n"
     end
-    events = unique(skipmissing(dataset[:, adoptionTime]))
     # Initialize a list (Vector) to store the sub experiments
     allowmissing!(dataset, adoptionTime)
-    dataset[:,adoptionTime][isequal.(data[:,adoptionTime],0)] .=missing
+    dataset[!,adoptionTime][isequal.(data[:,adoptionTime],0)] .=missing
+    events = unique(skipmissing(dataset[:, adoptionTime]))
     stacked_dtc = DataFrame()
     # Loop over the events and create a data set for each one
     for j in events
@@ -37,7 +37,7 @@ function stacked_did_reg(data::DataFrame;yvar::Symbol, timeID::Symbol, groupID::
         create_sub_exp(
                 dataset,
                 timeID=timeID,
-                groupID=groupID, 
+                id=id, 
                 adoptionTime=adoptionTime, 
                 focalAdoptionTime=j,
                 kappa_pre=kappa_pre,

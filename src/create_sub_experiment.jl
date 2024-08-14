@@ -1,7 +1,7 @@
 larger_na_false(x::Number,y::Number) = x>y
 larger_na_false(x::Missing,y::Number) = false
 
-function create_sub_exp(dataset::DataFrame; timeID::Symbol, groupID::Symbol, adoptionTime::Symbol, focalAdoptionTime::Int, kappa_pre::Int, kappa_post::Int)
+function create_sub_exp(dataset::DataFrame; timeID::Symbol, id::Symbol, adoptionTime::Symbol, focalAdoptionTime::Int, kappa_pre::Int, kappa_post::Int)
 
     # Copy dataset
     dt_temp = deepcopy(dataset)
