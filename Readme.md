@@ -4,7 +4,18 @@ Implements Weighted Stacked Regressions (Wing, Freedman, and Hollingsworth, 2024
 
 Following this code example: [Link](https://github.com/hollina/stacked-did-weights/tree/main?tab=readme-ov-file)
 
-## Function Definition
+
+# ToDo
+
+ * Different controls - currently only supports not treated during window
+   - [ ] Never Treated
+   - [ ] Not Yet Treated
+ * Matched Controls - currently none
+   - [ ] On equalities
+   - [ ] PSM or other distnance measures (likely won't do this in this package -> if that is required building a custom stack function is better) 
+
+
+# Function Definition
 
 ```julia
     stacked_did_reg(data::DataFrame;yvar::Symbol, timeID::Symbol, unitID::Symbol, cohort::Symbol, kappa_pre::Int, kappa_post::Int,x_vars::Vector{Symbol}=Symbol[],fes::Vector{Symbol}=Symbol[],cluster::Union{Nothing,Symbol}=nothing,contrasts::Dict{Symbol, DummyCoding}=Dict{Symbol, DummyCoding}(),multi_thread::Bool=true,inc_sub_exp_fes=false)
