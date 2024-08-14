@@ -1,6 +1,6 @@
 module WeightedStackedDID
     
-using DataFrames, FixedEffectModels, Distributions, CSV
+using DataFrames, FixedEffectModels, Distributions
 using PrecompileTools: @setup_workload, @compile_workload
 
 export stacked_did_reg, compute_weights!, create_sub_exp, agg_to_ATT, WSDID_AGG
@@ -103,6 +103,7 @@ end
 
 
 @setup_workload begin
+    using CSV
     data = CSV.File(raw"data\acs1860_unins_2008_2021.csv") |> DataFrame
     data[!,:x1] = rand(size(data,1))
     data.adopt_year[ismissing.(data.adopt_year)].=0
