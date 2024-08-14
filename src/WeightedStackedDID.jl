@@ -3,11 +3,12 @@ module WeightedStackedDID
 using DataFrames, FixedEffectModels, Distributions
 using PrecompileTools: @setup_workload, @compile_workload
 
-export stacked_did_reg, compute_weights!, create_sub_exp, agg_to_ATT, WSDID_AGG
+export stacked_did_reg, compute_weights!, create_sub_exp, agg_to_ATT, WSDID_AGG, wsdid_prec_data
 
 include("compute_weights.jl");
 include("create_sub_experiment.jl");
-include("ATT.jl")
+include("ATT.jl");
+include(raw"pre_compile_data.jl");
 
 """
     stacked_did_reg(data::DataFrame;yvar::Symbol, timeID::Symbol, unitID::Symbol, cohort::Symbol, kappa_pre::Int, kappa_post::Int,x_vars::Vector{Symbol}=Symbol[],fes::Vector{Symbol}=Symbol[],cluster::Union{Nothing,Symbol}=nothing,contrasts::Dict{Symbol, DummyCoding}=Dict{Symbol, DummyCoding}(),multi_thread::Bool=true)
@@ -103,12 +104,11 @@ end
 
 
 @setup_workload begin
-    include(raw"pre_compile_data.jl")
-    prec_data[!,:x1] = rand(size(prec_data,1))
+    wsdid_prec_data[!,:x1] = rand(size(wsdid_prec_data,1))
     @compile_workload begin
-        res =stacked_did_reg(prec_data;yvar=:unins, timeID=:year, unitID=:statefip, cohort=:adopt_year, kappa_pre=3, kappa_post=2,cluster=:statefip)
-        res =stacked_did_reg(prec_data;yvar=:unins, timeID=:year, unitID=:statefip, cohort=:adopt_year, kappa_pre=3, kappa_post=2,cluster=:statefip,multi_thread=false)
-        res =stacked_did_reg(prec_data;yvar=:unins, timeID=:year, unitID=:statefip, cohort=:adopt_year, kappa_pre=3, kappa_post=2,cluster=:statefip,fes=[:statefip],x_vars=[:x1])
+        stacked_did_reg(wsdid_prec_data;yvar=:unins, timeID=:year, unitID=:statefip, cohort=:adopt_year, kappa_pre=3, kappa_post=2,cluster=:statefip)
+        stacked_did_reg(wsdid_prec_data;yvar=:unins, timeID=:year, unitID=:statefip, cohort=:adopt_year, kappa_pre=3, kappa_post=2,cluster=:statefip,multi_thread=false)
+        res =stacked_did_reg(wsdid_prec_data;yvar=:unins, timeID=:year, unitID=:statefip, cohort=:adopt_year, kappa_pre=3, kappa_post=2,cluster=:statefip,fes=[:statefip],x_vars=[:x1])
         agg_to_ATT(res)
     end
 end
