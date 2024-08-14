@@ -9,27 +9,45 @@ include("create_sub_experiment.jl");
 include("ATT.jl")
 
 """
-    stacked_did_reg(data::DataFrame;yvar::Symbol, timeID::Symbol, id::Symbol, adoptionTime::Symbol, kappa_pre::Int, kappa_post::Int,x_vars::Vector{Symbol}=Symbol[],fes::Vector{Symbol}=Symbol[],cluster::Union{Nothing,Symbol}=nothing,contrasts::Dict{Symbol, DummyCoding}=Dict{Symbol, DummyCoding}())
+    stacked_did_reg(data::DataFrame;yvar::Symbol, timeID::Symbol, unitID::Symbol, cohort::Symbol, kappa_pre::Int, kappa_post::Int,x_vars::Vector{Symbol}=Symbol[],fes::Vector{Symbol}=Symbol[],cluster::Union{Nothing,Symbol}=nothing,contrasts::Dict{Symbol, DummyCoding}=Dict{Symbol, DummyCoding}())
 
 Implements the Weighted Stacked Difference-in-Differences of Wing, Freedman, and Hollingsworth (2024).
 
+# Arguments  
+
+ * data: The DataFrame
+ * yvar: Y variable
+ * timeID: The calander time variable (assumes an integer not a date variable)
+ * unitID: The unit/individual ID
+ * cohort: Time period of first treatment (assumes an integer not a date variable)
+ * kappa_pre: Number of pre periods
+ * kappa_post: Number of post periods
+ * x_vars: Vector of control variables
+ * fes: Vector of additional fixed effects
+ * cluster: The cluster variable (currently only supports one). If not supplied it is set at the level of the unitID
+ * contrasts: contrasts for DummyVariables. Required if you included a Dummy Variable in x_vars
+
+ # Output
+
+ FixedEffectModel 
+
 """
-function stacked_did_reg(data::DataFrame;yvar::Symbol, timeID::Symbol, id::Symbol, adoptionTime::Symbol, kappa_pre::Int, kappa_post::Int,x_vars::Vector{Symbol}=Symbol[],fes::Vector{Symbol}=Symbol[],cluster::Union{Nothing,Symbol}=nothing,contrasts::Dict{Symbol, DummyCoding}=Dict{Symbol, DummyCoding}())
-    dataset = select(data, unique(vcat(yvar,x_vars,fes,timeID,id,adoptionTime)))    
+function stacked_did_reg(data::DataFrame;yvar::Symbol, timeID::Symbol, unitID::Symbol, cohort::Symbol, kappa_pre::Int, kappa_post::Int,x_vars::Vector{Symbol}=Symbol[],fes::Vector{Symbol}=Symbol[],cluster::Union{Nothing,Symbol}=nothing,contrasts::Dict{Symbol, DummyCoding}=Dict{Symbol, DummyCoding}())
+    dataset = select(data, unique(vcat(yvar,x_vars,fes,timeID,unitID,cohort)))    
     dropmissing!(dataset)
     
     _formula=term(yvar)~sum(vcat(term(:event_time_treat),term.(x_vars),fe.(term.(vcat(fes,:treat,:event_time)))))
     if isnothing(cluster)
-        cluster = id
-        @info "\nCluster variable was not provided. Clustering will happen on the $(string(id)) level!\n"
+        cluster = unitID
+        @info "\nCluster variable was not provided. Clustering will happen on the $(string(unitID)) level!\n"
     end
     if size(dataset,1) != size(data,1)
         @info "\n$(size(data,1) - size(dataset,1)) observations were dropped due to missingness!\n"
     end
     # Initialize a list (Vector) to store the sub experiments
-    allowmissing!(dataset, adoptionTime)
-    dataset[!,adoptionTime][isequal.(data[:,adoptionTime],0)] .=missing
-    events = unique(skipmissing(dataset[:, adoptionTime]))
+    allowmissing!(dataset, cohort)
+    dataset[!,cohort][isequal.(data[:,cohort],0)] .=missing
+    events = unique(skipmissing(dataset[:, cohort]))
     stacked_dtc = DataFrame()
     # Loop over the events and create a data set for each one
     for j in events
@@ -37,9 +55,9 @@ function stacked_did_reg(data::DataFrame;yvar::Symbol, timeID::Symbol, id::Symbo
         create_sub_exp(
                 dataset,
                 timeID=timeID,
-                id=id, 
-                adoptionTime=adoptionTime, 
-                focalAdoptionTime=j,
+                unitID=unitID, 
+                cohort=cohort, 
+                focalcohort=j,
                 kappa_pre=kappa_pre,
                 kappa_post=kappa_post
             ))

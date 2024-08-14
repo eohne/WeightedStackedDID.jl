@@ -1,6 +1,30 @@
-Weighted Stacked Regressions (Wing, Freedman, and Hollingsworth, 2024) - [NBER Paper](https://www.nber.org/system/files/working_papers/w32054/w32054.pdf)  
+# WeightedStackedDiD.jl
+
+Implements Weighted Stacked Regressions (Wing, Freedman, and Hollingsworth, 2024) - [NBER Paper](https://www.nber.org/system/files/working_papers/w32054/w32054.pdf)  
 
 Following this code example: [Link](https://github.com/hollina/stacked-did-weights/tree/main?tab=readme-ov-file)
+
+## Function Definition
+
+```julia
+    stacked_did_reg(data::DataFrame;yvar::Symbol, timeID::Symbol, unitID::Symbol, cohort::Symbol, kappa_pre::Int, kappa_post::Int,x_vars::Vector{Symbol}=Symbol[],fes::Vector{Symbol}=Symbol[],cluster::Union{Nothing,Symbol}=nothing,contrasts::Dict{Symbol, DummyCoding}=Dict{Symbol, DummyCoding}())
+```
+### Arguments  
+
+ * data: The DataFrame
+ * yvar: Y variable
+ * timeID: The calander time variable (assumes an integer not a date variable)
+ * unitID: The unit/individual ID
+ * cohort: Time period of first treatment (assumes an integer not a date variable)
+ * kappa_pre: Number of pre periods
+ * kappa_post: Number of post periods
+ * x_vars: Vector of control variables
+ * fes: Vector of additional fixed effects
+ * cluster: The cluster variable (currently only supports one). If not supplied it is set at the level of the unitID
+ * contrasts: contrasts for DummyVariables. Required if you included a Dummy Variable in x_vars
+
+## Example
+
 
 ```julia
 julia> using CSV, DataFrames, FixedEffectModels
@@ -14,8 +38,8 @@ julia> wsd_res = stacked_did_reg(data,
            x_vars=Symbol[], # not needed is automatically set to empty                                                                        
            fes = Symbol[], # not needed is automatically set to empty                                                                         
            timeID=:year,                                                                                                                      
-           groupID=:statefip,                                                                                                                 
-           adoptionTime=:adopt_year,                                                                                                          
+           unitID=:statefip,                                                                                                                 
+           cohort=:adopt_year,                                                                                                          
            kappa_pre=3,                                                                                                                       
            kappa_post=2,                                                                                                                      
            cluster=:statefip)
