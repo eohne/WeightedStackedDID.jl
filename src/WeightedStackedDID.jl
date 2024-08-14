@@ -103,14 +103,12 @@ end
 
 
 @setup_workload begin
-    using CSV
-    data = CSV.File(raw"data\acs1860_unins_2008_2021.csv") |> DataFrame
-    data[!,:x1] = rand(size(data,1))
-    data.adopt_year[ismissing.(data.adopt_year)].=0
+    include(raw"pre_compile_data.jl")
+    prec_data[!,:x1] = rand(size(prec_data,1))
     @compile_workload begin
-        res =stacked_did_reg(data;yvar=:unins, timeID=:year, unitID=:statefip, cohort=:adopt_year, kappa_pre=3, kappa_post=2,cluster=:statefip);
-        res =stacked_did_reg(data;yvar=:unins, timeID=:year, unitID=:statefip, cohort=:adopt_year, kappa_pre=3, kappa_post=2,cluster=:statefip,multi_thread=false);
-        res =stacked_did_reg(data;yvar=:unins, timeID=:year, unitID=:statefip, cohort=:adopt_year, kappa_pre=3, kappa_post=2,cluster=:statefip,fes=[:statefip],x_vars=[:x1]);
+        res =stacked_did_reg(prec_data;yvar=:unins, timeID=:year, unitID=:statefip, cohort=:adopt_year, kappa_pre=3, kappa_post=2,cluster=:statefip);
+        res =stacked_did_reg(prec_data;yvar=:unins, timeID=:year, unitID=:statefip, cohort=:adopt_year, kappa_pre=3, kappa_post=2,cluster=:statefip,multi_thread=false);
+        res =stacked_did_reg(prec_data;yvar=:unins, timeID=:year, unitID=:statefip, cohort=:adopt_year, kappa_pre=3, kappa_post=2,cluster=:statefip,fes=[:statefip],x_vars=[:x1]);
         agg_to_ATT(res);
     end
 end
