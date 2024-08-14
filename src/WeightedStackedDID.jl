@@ -8,7 +8,7 @@ export stacked_did_reg, compute_weights!, create_sub_exp, agg_to_ATT, WSDID_AGG,
 include("compute_weights.jl");
 include("create_sub_experiment.jl");
 include("ATT.jl");
-include(raw"pre_compile_data.jl");
+include("pre_compile_data.jl");
 
 """
     stacked_did_reg(data::DataFrame;yvar::Symbol, timeID::Symbol, unitID::Symbol, cohort::Symbol, kappa_pre::Int, kappa_post::Int,x_vars::Vector{Symbol}=Symbol[],fes::Vector{Symbol}=Symbol[],cluster::Union{Nothing,Symbol}=nothing,contrasts::Dict{Symbol, DummyCoding}=Dict{Symbol, DummyCoding}(),multi_thread::Bool=true,inc_sub_exp_fes=false)
@@ -97,8 +97,8 @@ function stacked_did_reg(data::DataFrame;yvar::Symbol, timeID::Symbol, unitID::S
         subexpVar = :sub_exp)
         
     transform!(stacked_dtc, [:event_time,:treat] =>  ByRow(*) =>:event_time_treat )
-    rtransform!(stacked_dtc, [:sub_exp,unitID] => ByRow((x,y)-> string(x,"_",y))=>:subex_unitID)
-    rtransform!(stacked_dtc, [:sub_exp,:event_time] => ByRow((x,y)-> string(x,"_",y))=>:subex_etime)
+    transform!(stacked_dtc, [:sub_exp,unitID] => ByRow((x,y)-> string(x,"_",y))=>:subex_unitID)
+    transform!(stacked_dtc, [:sub_exp,:event_time] => ByRow((x,y)-> string(x,"_",y))=>:subex_etime)
     weight_stack = reg(stacked_dtc, _formula, 
                             Vcov.cluster(cluster),
                             weights =:stack_weight, contrasts = merge(Dict(:event_time_treat => DummyCoding(base=-1)),contrasts))
