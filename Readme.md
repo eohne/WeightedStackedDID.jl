@@ -9,16 +9,23 @@ Following this code example: [Link](https://github.com/hollina/stacked-did-weigh
 
  * Different controls - currently only supports not treated during window
    - [ ] Never Treated
-   - [ ] Not Yet Treated
- * Matched Controls - currently none
-   - [ ] On equalities
-   - [ ] PSM or other distnance measures (likely won't do this in this package -> if that is required building a custom stack function is better) 
 
 
 # Function Definition
 
 ```julia
-    stacked_did_reg(data::DataFrame;yvar::Symbol, timeID::Symbol, unitID::Symbol, cohort::Symbol, kappa_pre::Int, kappa_post::Int,x_vars::Vector{Symbol}=Symbol[],fes::Vector{Symbol}=Symbol[],cluster::Union{Nothing,Symbol}=nothing,contrasts::Dict{Symbol, DummyCoding}=Dict{Symbol, DummyCoding}(),multi_thread::Bool=true,inc_sub_exp_fes=false)
+    stacked_did_reg(data::DataFrame;yvar::Symbol,
+    timeID::Symbol,
+    unitID::Symbol,
+    cohort::Symbol,
+    kappa_pre::Int,
+    kappa_post::Int,
+    x_vars::Vector{Symbol}=Symbol[],
+    fes::Vector{Symbol}=Symbol[],
+    cluster::Union{Nothing,Symbol}=nothing,
+    contrasts::Dict{Symbol, DummyCoding}=Dict{Symbol, DummyCoding}(),
+    multi_thread::Bool=true,
+    inc_sub_exp_fes=false)
 ```
 ### Arguments  
 
@@ -46,8 +53,14 @@ julia> data = CSV.File(raw"data\acs1860_unins_2008_2021.csv") |> DataFrame;
 
 julia> data.adopt_year[ismissing.(data.adopt_year)] .=0; # Never Treated Adoption time must be set to zero
 
-julia> wsd_res = stacked_did_reg(data,                                                                                                                  
-           yvar=:unins,timeID=:year,                                                                                               unitID=:statefip,                                                                                           cohort=:adopt_year,                                                                                         kappa_pre=3,                                                                                                kappa_post=2,                                                                                               cluster=:statefip)
+julia> wsd_res = stacked_did_reg(data,
+  yvar=:unins,
+  timeID=:year,
+  unitID=:statefip,
+  cohort=:adopt_year,
+  kappa_pre=3,
+  kappa_post=2,
+  cluster=:statefip)
                                 FixedEffectModel
 ================================================================================
 Number of obs:                      336  Converged:                         true
