@@ -7,7 +7,7 @@ Following this code example: [Link](https://github.com/hollina/stacked-did-weigh
 
 # ToDo
 
- * Different controls - currently only supports not treated during window
+ * Different controls - currently only supports not yet treated
    - [ ] Never Treated
 
 
